@@ -3,14 +3,16 @@ from tqdm import tqdm
 from clip_model import CLIPModel
 from vector_db import VectorDB
 from utils import timer
+from pillow_heif import register_heif_opener
 
+register_heif_opener()
 
 model_id = "ViT-B/32"
 photos_folder = "./photos"
 db_file = "./milvus.db"
 collection_name = "image_embeddings"
 
-image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
+image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic"]
 
 vector_db = VectorDB(db_file=db_file)
 clip_model = CLIPModel(model_id)
@@ -23,9 +25,9 @@ def list_images(source_dir):
             if file.lower().endswith(tuple(image_extensions)):
                 source_path = os.path.join(root, file)
                 image_files.append(source_path)
-                # yield source_path
+                yield source_path
 
-    return image_files
+    # return image_files
 
 
 @timer()
@@ -34,9 +36,11 @@ def build_db(folder):
     print("Building DB with photos...")
 
     for image_path in tqdm(list_images(folder)):
-        img_embedding = clip_model.encode_image(image_path)
-        vector_db.insert_embedding(collection_name, img_embedding, image_path)
-
+        try:
+            img_embedding = clip_model.encode_image(image_path)
+            vector_db.insert_embedding(collection_name, img_embedding, image_path)
+        except Exception as e:
+            print(e)
 
 if __name__ == "__main__":
     build_db(photos_folder)

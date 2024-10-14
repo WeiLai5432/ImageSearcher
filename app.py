@@ -4,14 +4,17 @@ import time
 import streamlit as st
 from PIL import Image
 from utils import timer
+from pillow_heif import register_heif_opener
 
 # from stqdm import stqdm
 
+register_heif_opener()
+
 model_id = "ViT-B/32"
-db_file = "./milvus.db"
+db_file = "./nas.db"
 collection_name = "image_embeddings"
 
-image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"]
+image_extensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".heic"]
 
 
 @st.cache_resource
